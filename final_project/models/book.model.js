@@ -1,4 +1,3 @@
-// models/book.model.js
 const mongoose = require('mongoose');
 
 // Book Schema

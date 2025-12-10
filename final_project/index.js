@@ -1,22 +1,32 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const session = require('express-session')
-const customer_routes = require('./router/auth_users.js').authenticated;
-const genl_routes = require('./router/general.js').general;
+require('dotenv').config();
 
-const app = express();
+const app = require('./app');
+const { connectDB } = require('./configuration/dbConfig');
+const mongoose = require('mongoose');
 
-app.use(express.json());
+// Set port
+const PORT = process.env.PORT || 5000;
 
-app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
+// Connect to MongoDB then start server
+const startServer = async () => {
+    try {
+        await connectDB();
 
-app.use("/customer/auth/*", function auth(req,res,next){
-//Write the authenication mechanism here
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+            console.log(`API available at http://localhost:${PORT}/api`);
+        });
+    } catch (err) {
+        console.error(`Failed to start server: ${err.message}`);
+        process.exit(1);
+    }
+};
+
+startServer();
+
+// Handle process termination
+process.on('SIGINT', async () => {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed. Exiting process');
+    process.exit(0);
 });
- 
-const PORT =5000;
-
-app.use("/customer", customer_routes);
-app.use("/", genl_routes);
-
-app.listen(PORT,()=>console.log("Server is running"));
